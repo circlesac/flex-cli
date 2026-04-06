@@ -1,0 +1,8 @@
+{
+  "name": "flex",
+  "description": "Query Flex HR — list employees, search by name/department, view org structure via flex CLI",
+  "author": {
+    "name": "Circles Inc.",
+    "url": "https://github.com/circlesac"
+  }
+}

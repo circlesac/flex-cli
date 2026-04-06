@@ -1,0 +1,11 @@
+{
+  "name": "flex",
+  "owner": { "name": "Circles Inc." },
+  "plugins": [
+    {
+      "name": "flex",
+      "source": "./",
+      "description": "Query Flex HR — list employees, search by name/department, view org structure via flex CLI"
+    }
+  ]
+}

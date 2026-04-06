@@ -1,0 +1,27 @@
+{
+  "name": "@circlesac/flex",
+  "description": "CLI for Flex HR (flex.team)",
+  "module": "src/index.ts",
+  "type": "module",
+  "bin": {
+    "flex": "src/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build --compile --outfile=dist/flex src/index.ts"
+  },
+  "dependencies": {
+    "citty": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/circlesac/flex-cli"
+  }
+}
