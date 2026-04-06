@@ -3,46 +3,129 @@ import { createDecipheriv, pbkdf2Sync } from "node:crypto";
 import { execSync } from "node:child_process";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { copyFileSync, unlinkSync } from "node:fs";
+import { copyFileSync, unlinkSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import type { FlexCredentials } from "../types/index.ts";
 import { AuthError } from "./errors.ts";
 
-const COOKIES_PATH = join(
-  homedir(),
-  "Library",
-  "Application Support",
-  "Comet",
-  "Default",
-  "Cookies",
-);
+interface BrowserConfig {
+  name: string;
+  keychainService: string;
+  cookiesPath: string;
+}
 
-function getKeychainPassword(): string {
+const BROWSERS: BrowserConfig[] = [
+  {
+    name: "Comet",
+    keychainService: "Comet Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Comet", "Default", "Cookies"),
+  },
+  {
+    name: "Chrome",
+    keychainService: "Chrome Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Google", "Chrome", "Default", "Cookies"),
+  },
+  {
+    name: "Arc",
+    keychainService: "Arc Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Arc", "User Data", "Default", "Cookies"),
+  },
+  {
+    name: "Edge",
+    keychainService: "Microsoft Edge Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Microsoft Edge", "Default", "Cookies"),
+  },
+  {
+    name: "Brave",
+    keychainService: "Brave Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "BraveSoftware", "Brave-Browser", "Default", "Cookies"),
+  },
+  {
+    name: "Chromium",
+    keychainService: "Chromium Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Chromium", "Default", "Cookies"),
+  },
+];
+
+function detectBrowser(): BrowserConfig {
+  for (const browser of BROWSERS) {
+    if (existsSync(browser.cookiesPath)) {
+      return browser;
+    }
+  }
+  throw new AuthError(
+    `No supported Chromium browser found. Checked: ${BROWSERS.map((b) => b.name).join(", ")}`,
+  );
+}
+
+function detectBrowserWithFlexCookies(): { browser: BrowserConfig; key: Buffer } {
+  const available: BrowserConfig[] = [];
+  for (const browser of BROWSERS) {
+    if (existsSync(browser.cookiesPath)) {
+      available.push(browser);
+    }
+  }
+
+  if (available.length === 0) {
+    throw new AuthError(
+      `No supported Chromium browser found. Checked: ${BROWSERS.map((b) => b.name).join(", ")}`,
+    );
+  }
+
+  // Try each browser, return first one with flex.team cookies
+  for (const browser of available) {
+    try {
+      const key = getKeychainKey(browser);
+      const hasCookies = checkFlexCookies(browser, key);
+      if (hasCookies) {
+        return { browser, key };
+      }
+    } catch {
+      // skip browsers that fail keychain access
+    }
+  }
+
+  // Fallback to first available
+  const browser = available[0]!;
+  const key = getKeychainKey(browser);
+  return { browser, key };
+}
+
+function getKeychainKey(browser: BrowserConfig): Buffer {
   try {
     const output = execSync(
-      'security find-generic-password -s "Comet Safe Storage" -g 2>&1',
+      `security find-generic-password -s "${browser.keychainService}" -g 2>&1`,
       { encoding: "utf-8" },
     );
     const match = output.match(/password:\s*"([^"]+)"/);
     if (!match?.[1]) {
       throw new Error("Could not parse keychain password");
     }
-    return match[1];
+    return pbkdf2Sync(match[1], "saltysalt", 1003, 16, "sha1");
   } catch (error) {
     throw new AuthError(
-      "Failed to read Comet Safe Storage from Keychain. Is Comet installed?",
+      `Failed to read ${browser.keychainService} from Keychain. Is ${browser.name} installed?`,
     );
   }
 }
 
-function deriveKey(keychainPassword: string): Buffer {
-  return pbkdf2Sync(
-    keychainPassword,
-    "saltysalt",
-    1003,
-    16,
-    "sha1",
-  );
+function checkFlexCookies(browser: BrowserConfig, key: Buffer): boolean {
+  const tmpPath = join(tmpdir(), `flex-check-${Date.now()}.db`);
+  try {
+    copyFileSync(browser.cookiesPath, tmpPath);
+    const db = new Database(tmpPath, { readonly: true });
+    const row = db
+      .query<{ cnt: number }, []>(
+        "SELECT COUNT(*) as cnt FROM cookies WHERE host_key LIKE '%flex.team%' AND name = 'AID'",
+      )
+      .get();
+    db.close();
+    return (row?.cnt ?? 0) > 0;
+  } catch {
+    return false;
+  } finally {
+    try { unlinkSync(tmpPath); } catch {}
+  }
 }
 
 function decryptCookie(encrypted: Buffer, key: Buffer): string {
@@ -50,16 +133,12 @@ function decryptCookie(encrypted: Buffer, key: Buffer): string {
     return "";
   }
 
-  // Check for v10 prefix
   const prefix = encrypted.subarray(0, 3).toString("utf-8");
   if (prefix !== "v10") {
     return encrypted.toString("utf-8");
   }
 
-  // Strip v10 prefix
   const payload = encrypted.subarray(3);
-
-  // AES-128-CBC with IV = 16 spaces
   const iv = Buffer.from(" ".repeat(16), "utf-8");
   const decipher = createDecipheriv("aes-128-cbc", key, iv);
   decipher.setAutoPadding(false);
@@ -69,7 +148,6 @@ function decryptCookie(encrypted: Buffer, key: Buffer): string {
     decipher.final(),
   ]);
 
-  // Remove PKCS7 padding
   const padByte = decrypted[decrypted.length - 1]!;
   let unpadded: Buffer;
   if (padByte > 0 && padByte <= 16) {
@@ -91,18 +169,16 @@ function parseJwtPayload(jwt: string): Record<string, unknown> {
   return JSON.parse(payload) as Record<string, unknown>;
 }
 
-export async function extractCometCookies(): Promise<FlexCredentials> {
-  // Get keychain password and derive key
-  const keychainPassword = getKeychainPassword();
-  const key = deriveKey(keychainPassword);
+export async function extractBrowserCookies(): Promise<FlexCredentials & { browser: string }> {
+  const { browser, key } = detectBrowserWithFlexCookies();
 
   // Copy cookies DB to temp file (avoid locking)
   const tmpPath = join(tmpdir(), `flex-cookies-${Date.now()}.db`);
   try {
-    copyFileSync(COOKIES_PATH, tmpPath);
+    copyFileSync(browser.cookiesPath, tmpPath);
   } catch {
     throw new AuthError(
-      `Cannot read Comet cookies at ${COOKIES_PATH}. Is Comet installed?`,
+      `Cannot read ${browser.name} cookies at ${browser.cookiesPath}. Is ${browser.name} running?`,
     );
   }
 
@@ -122,11 +198,7 @@ export async function extractCometCookies(): Promise<FlexCredentials> {
       cookies[row.name] = decryptCookie(Buffer.from(row.encrypted_value), key);
     }
   } finally {
-    try {
-      unlinkSync(tmpPath);
-    } catch {
-      // ignore cleanup errors
-    }
+    try { unlinkSync(tmpPath); } catch {}
   }
 
   const jsessionid = cookies["JSESSIONID"];
@@ -139,11 +211,10 @@ export async function extractCometCookies(): Promise<FlexCredentials> {
     if (!aid) missing.push("AID");
     if (!deviceId) missing.push("DEVICE_ID");
     throw new AuthError(
-      `Missing cookies: ${missing.join(", ")}. Log in to flex.team in Comet first.`,
+      `Missing cookies: ${missing.join(", ")}. Log in to flex.team in ${browser.name} first.`,
     );
   }
 
-  // Parse JWT to get customerUuid and exp
   const payload = parseJwtPayload(aid);
   const customerUuid = payload["customerUuid"] as string | undefined;
   const exp = payload["exp"] as number | undefined;
@@ -152,5 +223,8 @@ export async function extractCometCookies(): Promise<FlexCredentials> {
     throw new AuthError("AID JWT is missing customerUuid or exp fields");
   }
 
-  return { jsessionid, aid, deviceId, customerUuid, exp };
+  return { jsessionid, aid, deviceId, customerUuid, exp, browser: browser.name };
 }
+
+// Keep backward compat
+export const extractCometCookies = extractBrowserCookies;
