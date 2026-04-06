@@ -1,0 +1,36 @@
+class FlexCli < Formula
+  desc "CLI for Flex HR (flex.team)"
+  homepage "https://github.com/circlesac/flex-cli"
+  version "VERSION_PLACEHOLDER"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-darwin-arm64.tar.gz"
+      sha256 "SHA_DARWIN_ARM64"
+    end
+    on_intel do
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-darwin-x64.tar.gz"
+      sha256 "SHA_DARWIN_X64"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-linux-arm64.tar.gz"
+      sha256 "SHA_LINUX_ARM64"
+    end
+    on_intel do
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-linux-x64.tar.gz"
+      sha256 "SHA_LINUX_X64"
+    end
+  end
+
+  def install
+    bin.install "flex"
+  end
+
+  test do
+    system "#{bin}/flex", "--help"
+  end
+end

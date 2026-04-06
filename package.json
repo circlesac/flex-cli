@@ -4,11 +4,21 @@
   "module": "src/index.ts",
   "type": "module",
   "bin": {
-    "flex": "src/index.ts"
+    "flex": "bin/flex.mjs"
   },
+  "files": [
+    "bin",
+    "skills"
+  ],
   "scripts": {
-    "dev": "bun run src/index.ts",
-    "build": "bun build --compile --outfile=dist/flex src/index.ts"
+    "postinstall": "node bin/install.js",
+    "build": "bun build --compile --outfile=dist/flex src/index.ts",
+    "dev": "bun run src/index.ts"
+  },
+  "pi": {
+    "skills": [
+      "./skills"
+    ]
   },
   "dependencies": {
     "citty": "^0.2.0"
