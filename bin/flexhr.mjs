@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const bin = path.join(__dirname, "native", "flex");
+const bin = path.join(__dirname, "native", "flexhr");
 
 if (!existsSync(bin)) {
   await import("./install.js");

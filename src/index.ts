@@ -8,7 +8,7 @@ import { meCommand } from "./commands/me.ts";
 
 const main = defineCommand({
   meta: {
-    name: "flex",
+    name: "flexhr",
     version: "0.1.0",
     description: "CLI for Flex HR (flex.team)",
   },

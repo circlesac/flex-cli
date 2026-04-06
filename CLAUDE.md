@@ -6,7 +6,7 @@ CLI for Flex HR (flex.team). Extracts Comet browser cookies to authenticate with
 
 ```bash
 bun install          # install dependencies
-bun run src/index.ts # run CLI
+bun run src/index.ts # run flexhr CLI
 ```
 
 ## Architecture

@@ -6,31 +6,31 @@ class FlexCli < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-darwin-arm64.tar.gz"
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flexhr-darwin-arm64.tar.gz"
       sha256 "SHA_DARWIN_ARM64"
     end
     on_intel do
-      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-darwin-x64.tar.gz"
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flexhr-darwin-x64.tar.gz"
       sha256 "SHA_DARWIN_X64"
     end
   end
 
   on_linux do
     on_arm do
-      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-linux-arm64.tar.gz"
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flexhr-linux-arm64.tar.gz"
       sha256 "SHA_LINUX_ARM64"
     end
     on_intel do
-      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flex-linux-x64.tar.gz"
+      url "https://github.com/circlesac/flex-cli/releases/download/v#{version}/flexhr-linux-x64.tar.gz"
       sha256 "SHA_LINUX_X64"
     end
   end
 
   def install
-    bin.install "flex"
+    bin.install "flexhr"
   end
 
   test do
-    system "#{bin}/flex", "--help"
+    system "#{bin}/flexhr", "--help"
   end
 end

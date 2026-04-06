@@ -4,7 +4,7 @@
   "module": "src/index.ts",
   "type": "module",
   "bin": {
-    "flex": "bin/flex.mjs"
+    "flexhr": "bin/flexhr.mjs"
   },
   "files": [
     "bin",
@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "postinstall": "node bin/install.js",
-    "build": "bun build --compile --outfile=dist/flex src/index.ts",
+    "build": "bun build --compile --outfile=dist/flexhr src/index.ts",
     "dev": "bun run src/index.ts"
   },
   "pi": {

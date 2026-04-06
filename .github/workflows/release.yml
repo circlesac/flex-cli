@@ -32,13 +32,13 @@ jobs:
       matrix:
         include:
           - target: bun-darwin-x64
-            name: flex-darwin-x64
+            name: flexhr-darwin-x64
           - target: bun-darwin-arm64
-            name: flex-darwin-arm64
+            name: flexhr-darwin-arm64
           - target: bun-linux-x64
-            name: flex-linux-x64
+            name: flexhr-linux-x64
           - target: bun-linux-arm64
-            name: flex-linux-arm64
+            name: flexhr-linux-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -53,8 +53,8 @@ jobs:
 
       - name: Build binary
         run: |
-          bun build --compile --target=${{ matrix.target }} --outfile=flex src/index.ts
-          tar czf ${{ matrix.name }}.tar.gz flex
+          bun build --compile --target=${{ matrix.target }} --outfile=flexhr src/index.ts
+          tar czf ${{ matrix.name }}.tar.gz flexhr
 
       - uses: actions/upload-artifact@v4
         with:
@@ -117,10 +117,10 @@ jobs:
         run: |
           VERSION=${{ needs.version.outputs.version }}
 
-          SHA_DARWIN_ARM64=$(shasum -a 256 artifacts/flex-darwin-arm64/*.tar.gz | cut -d' ' -f1)
-          SHA_DARWIN_X64=$(shasum -a 256 artifacts/flex-darwin-x64/*.tar.gz | cut -d' ' -f1)
-          SHA_LINUX_ARM64=$(shasum -a 256 artifacts/flex-linux-arm64/*.tar.gz | cut -d' ' -f1)
-          SHA_LINUX_X64=$(shasum -a 256 artifacts/flex-linux-x64/*.tar.gz | cut -d' ' -f1)
+          SHA_DARWIN_ARM64=$(shasum -a 256 artifacts/flexhr-darwin-arm64/*.tar.gz | cut -d' ' -f1)
+          SHA_DARWIN_X64=$(shasum -a 256 artifacts/flexhr-darwin-x64/*.tar.gz | cut -d' ' -f1)
+          SHA_LINUX_ARM64=$(shasum -a 256 artifacts/flexhr-linux-arm64/*.tar.gz | cut -d' ' -f1)
+          SHA_LINUX_X64=$(shasum -a 256 artifacts/flexhr-linux-x64/*.tar.gz | cut -d' ' -f1)
 
           git clone https://x-access-token:${GH_TOKEN}@github.com/circlesac/homebrew-tap.git
           cd homebrew-tap

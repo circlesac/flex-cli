@@ -11,10 +11,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = "circlesac/flex-cli";
 
 const PLATFORMS = {
-  "darwin-x64": { artifact: "flex-darwin-x64", ext: ".tar.gz" },
-  "darwin-arm64": { artifact: "flex-darwin-arm64", ext: ".tar.gz" },
-  "linux-x64": { artifact: "flex-linux-x64", ext: ".tar.gz" },
-  "linux-arm64": { artifact: "flex-linux-arm64", ext: ".tar.gz" },
+  "darwin-x64": { artifact: "flexhr-darwin-x64", ext: ".tar.gz" },
+  "darwin-arm64": { artifact: "flexhr-darwin-arm64", ext: ".tar.gz" },
+  "linux-x64": { artifact: "flexhr-linux-x64", ext: ".tar.gz" },
+  "linux-arm64": { artifact: "flexhr-linux-arm64", ext: ".tar.gz" },
 };
 
 function download(url) {
@@ -33,7 +33,7 @@ function download(url) {
 }
 
 const nativeDir = path.join(__dirname, "native");
-const binPath = path.join(nativeDir, "flex");
+const binPath = path.join(nativeDir, "flexhr");
 
 if (!fs.existsSync(binPath)) {
   const { version } = require("../package.json");
@@ -47,7 +47,7 @@ if (!fs.existsSync(binPath)) {
 
     const { artifact, ext } = info;
     const url = `https://github.com/${REPO}/releases/download/v${version}/${artifact}${ext}`;
-    console.info(`Downloading flex v${version} for ${platform}...`);
+    console.info(`Downloading flexhr v${version} for ${platform}...`);
 
     const data = await download(url);
     fs.mkdirSync(nativeDir, { recursive: true });
