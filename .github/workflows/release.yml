@@ -58,6 +58,10 @@ jobs:
       - name: Build binary
         run: |
           bun build --compile --target=${{ matrix.target }} --outfile=flexhr src/index.ts
+          if [[ "${{ matrix.target }}" == bun-darwin-* ]]; then
+            codesign --remove-signature flexhr
+            codesign --force --deep -s - flexhr
+          fi
           tar czf ${{ matrix.name }}.tar.gz flexhr
 
       - uses: actions/upload-artifact@v4
