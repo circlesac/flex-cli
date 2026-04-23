@@ -149,6 +149,73 @@ export async function resolvePolicy(
   return (await resp.json()) as TemplatePolicyResponse;
 }
 
+export async function draftDocument(
+  creds: FlexCredentials,
+  documentKey: string,
+  body: unknown,
+): Promise<unknown> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/draft?documentKey=${documentKey}`;
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+
+  return await resp.json();
+}
+
+export async function submitDocument(
+  creds: FlexCredentials,
+  body: unknown,
+): Promise<unknown> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents`;
+
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+
+  return await resp.json();
+}
+
+export async function deleteDraft(
+  creds: FlexCredentials,
+  documentKey: string,
+): Promise<void> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/draft?documentKey=${documentKey}`;
+
+  const resp = await fetch(url, {
+    method: "DELETE",
+    headers: buildHeaders(creds),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+}
+
 export async function getTemplates(
   creds: FlexCredentials,
 ): Promise<TemplateOption[]> {

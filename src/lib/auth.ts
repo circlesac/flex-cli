@@ -12,68 +12,115 @@ interface BrowserConfig {
   name: string;
   keychainService: string;
   cookiesPath: string;
+  bundleIds: string[];
 }
 
 const BROWSERS: BrowserConfig[] = [
   {
-    name: "Comet",
-    keychainService: "Comet Safe Storage",
-    cookiesPath: join(homedir(), "Library", "Application Support", "Comet", "Default", "Cookies"),
-  },
-  {
     name: "Chrome",
     keychainService: "Chrome Safe Storage",
     cookiesPath: join(homedir(), "Library", "Application Support", "Google", "Chrome", "Default", "Cookies"),
+    bundleIds: ["com.google.chrome"],
+  },
+  {
+    name: "Comet",
+    keychainService: "Comet Safe Storage",
+    cookiesPath: join(homedir(), "Library", "Application Support", "Comet", "Default", "Cookies"),
+    bundleIds: ["ai.perplexity.comet"],
   },
   {
     name: "Arc",
     keychainService: "Arc Safe Storage",
     cookiesPath: join(homedir(), "Library", "Application Support", "Arc", "User Data", "Default", "Cookies"),
+    bundleIds: ["company.thebrowser.browser"],
   },
   {
     name: "Edge",
     keychainService: "Microsoft Edge Safe Storage",
     cookiesPath: join(homedir(), "Library", "Application Support", "Microsoft Edge", "Default", "Cookies"),
+    bundleIds: ["com.microsoft.edgemac"],
   },
   {
     name: "Brave",
     keychainService: "Brave Safe Storage",
     cookiesPath: join(homedir(), "Library", "Application Support", "BraveSoftware", "Brave-Browser", "Default", "Cookies"),
+    bundleIds: ["com.brave.browser"],
   },
   {
     name: "Chromium",
     keychainService: "Chromium Safe Storage",
     cookiesPath: join(homedir(), "Library", "Application Support", "Chromium", "Default", "Cookies"),
+    bundleIds: ["org.chromium.chromium"],
   },
 ];
 
-function detectBrowser(): BrowserConfig {
-  for (const browser of BROWSERS) {
-    if (existsSync(browser.cookiesPath)) {
-      return browser;
-    }
-  }
-  throw new AuthError(
-    `No supported Chromium browser found. Checked: ${BROWSERS.map((b) => b.name).join(", ")}`,
+function getDefaultBrowserBundleId(): string | null {
+  const plistPath = join(
+    homedir(),
+    "Library",
+    "Preferences",
+    "com.apple.LaunchServices",
+    "com.apple.launchservices.secure.plist",
   );
+  if (!existsSync(plistPath)) return null;
+  try {
+    const json = execSync(`plutil -convert json -o - "${plistPath}"`, {
+      encoding: "utf-8",
+    });
+    const data = JSON.parse(json) as {
+      LSHandlers?: Array<{
+        LSHandlerURLScheme?: string;
+        LSHandlerRoleAll?: string;
+      }>;
+    };
+    const handler = data.LSHandlers?.find(
+      (h) => h.LSHandlerURLScheme === "https",
+    );
+    return handler?.LSHandlerRoleAll?.toLowerCase() ?? null;
+  } catch {
+    return null;
+  }
 }
 
-function detectBrowserWithFlexCookies(): { browser: BrowserConfig; key: Buffer } {
-  const available: BrowserConfig[] = [];
-  for (const browser of BROWSERS) {
-    if (existsSync(browser.cookiesPath)) {
-      available.push(browser);
-    }
-  }
+function orderBrowsersByDefault(browsers: BrowserConfig[]): BrowserConfig[] {
+  const defaultBundleId = getDefaultBrowserBundleId();
+  if (!defaultBundleId) return browsers;
+  const match = browsers.find((b) =>
+    b.bundleIds.some((id) => id.toLowerCase() === defaultBundleId),
+  );
+  if (!match) return browsers;
+  return [match, ...browsers.filter((b) => b !== match)];
+}
 
-  if (available.length === 0) {
+function detectBrowserWithFlexCookies(preferredName?: string): {
+  browser: BrowserConfig;
+  key: Buffer;
+} {
+  let candidates = BROWSERS.filter((b) => existsSync(b.cookiesPath));
+
+  if (candidates.length === 0) {
     throw new AuthError(
       `No supported Chromium browser found. Checked: ${BROWSERS.map((b) => b.name).join(", ")}`,
     );
   }
 
-  // Try each browser, return first one with flex.team cookies
-  for (const browser of available) {
+  if (preferredName) {
+    const forced = candidates.find(
+      (b) => b.name.toLowerCase() === preferredName.toLowerCase(),
+    );
+    if (!forced) {
+      throw new AuthError(
+        `Browser "${preferredName}" not found or not installed. Available: ${candidates.map((b) => b.name).join(", ")}`,
+      );
+    }
+    const key = getKeychainKey(forced);
+    return { browser: forced, key };
+  }
+
+  candidates = orderBrowsersByDefault(candidates);
+
+  // Try each browser in order, return first one with flex.team cookies
+  for (const browser of candidates) {
     try {
       const key = getKeychainKey(browser);
       const hasCookies = checkFlexCookies(browser, key);
@@ -86,7 +133,7 @@ function detectBrowserWithFlexCookies(): { browser: BrowserConfig; key: Buffer }
   }
 
   // Fallback to first available
-  const browser = available[0]!;
+  const browser = candidates[0]!;
   const key = getKeychainKey(browser);
   return { browser, key };
 }
@@ -169,8 +216,10 @@ function parseJwtPayload(jwt: string): Record<string, unknown> {
   return JSON.parse(payload) as Record<string, unknown>;
 }
 
-export async function extractBrowserCookies(): Promise<FlexCredentials & { browser: string }> {
-  const { browser, key } = detectBrowserWithFlexCookies();
+export async function extractBrowserCookies(
+  preferredBrowser?: string,
+): Promise<FlexCredentials & { browser: string }> {
+  const { browser, key } = detectBrowserWithFlexCookies(preferredBrowser);
 
   // Copy cookies DB to temp file (avoid locking)
   const tmpPath = join(tmpdir(), `flex-cookies-${Date.now()}.db`);

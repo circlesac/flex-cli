@@ -2,6 +2,8 @@ import { defineCommand } from "citty";
 import { docsListCommand } from "./list.ts";
 import { docsGetCommand } from "./get.ts";
 import { docsTemplatesCommand } from "./templates.ts";
+import { docsSubmitCommand } from "./submit.ts";
+import { docsDeleteCommand } from "./delete.ts";
 
 export const docsCommand = defineCommand({
   meta: {
@@ -12,5 +14,7 @@ export const docsCommand = defineCommand({
     list: docsListCommand,
     get: docsGetCommand,
     templates: docsTemplatesCommand,
+    submit: docsSubmitCommand,
+    delete: docsDeleteCommand,
   },
 });

@@ -8,9 +8,15 @@ export const loginCommand = defineCommand({
     name: "login",
     description: "Extract browser cookies and store credentials",
   },
-  run: async () => {
+  args: {
+    browser: {
+      type: "string",
+      description: "Force a specific browser (chrome, comet, arc, edge, brave, chromium)",
+    },
+  },
+  run: async ({ args }) => {
     try {
-      const creds = await extractBrowserCookies();
+      const creds = await extractBrowserCookies(args.browser);
       await storeCredentials(creds);
 
       const expDate = new Date(creds.exp * 1000);

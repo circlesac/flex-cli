@@ -1,11 +1,11 @@
 ---
 name: flexhr
-description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, and handle approval documents
+description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, list/get/submit approval documents
 ---
 
 # flexhr CLI
 
-CLI for interacting with Flex HR (flex.team). Authenticates by extracting cookies from Comet browser (Chromium-based) via macOS Keychain.
+CLI for interacting with Flex HR (flex.team). Authenticates by extracting cookies from the macOS default browser (auto-detected via LaunchServices; falls back to any installed Chromium browser — Chrome, Comet, Arc, Edge, Brave, Chromium).
 
 ## Installation
 
@@ -20,12 +20,13 @@ curl -fsSL https://github.com/circlesac/flex-cli/releases/latest/download/instal
 ### Authentication
 
 ```bash
-flexhr auth login       # Extract cookies from Comet browser and save credentials
-flexhr auth status      # Show current authentication status
-flexhr auth logout      # Remove stored credentials
+flexhr auth login                       # Extract cookies from the default browser and save credentials
+flexhr auth login --browser chrome      # Force a specific browser (chrome, comet, arc, edge, brave, chromium)
+flexhr auth status                      # Show current authentication status
+flexhr auth logout                      # Remove stored credentials
 ```
 
-Credentials are stored at `~/.config/flex/credentials.json`.
+Credentials are stored at `~/.config/flex/credentials.json`. The AID JWT is a session token that expires; re-run `auth login` after logging back in to flex.team in the browser.
 
 ### Current User
 
@@ -64,10 +65,40 @@ flexhr org --json               # JSON output
 ### Approval Documents
 
 ```bash
-flexhr docs list                # List approval documents
-flexhr docs get <id>            # Get a specific document
-flexhr docs templates           # List document templates
+flexhr docs list                                # List approval documents (default status: IN_PROGRESS)
+flexhr docs list --status DONE                  # Filter by status
+flexhr docs list --template <templateKey>       # Filter by template
+flexhr docs list --keyword "체력"               # Search by keyword
+flexhr docs get <documentKey>                   # Get a specific document
+flexhr docs templates                           # List document templates
+flexhr docs submit --payload <file.json>        # Submit an approval document from a payload JSON
+flexhr docs submit --payload <file.json> --dry-run   # Create draft only, don't submit
 ```
+
+#### `docs submit` payload format
+
+```json
+{
+  "document": {
+    "templateKey": "...",
+    "title": "...",
+    "content": "...(HTML; image URLs from prior docs can be reused here)...",
+    "inputs": [
+      { "inputFieldIdHash": "...", "value": "..." }
+    ],
+    "attachments": []
+  },
+  "approvalProcess": {
+    "lines": [
+      { "step": 0, "actors": [{ "resolveTarget": { "type": "USER", "value": "<userIdHash>" } }] }
+    ],
+    "referrers": [],
+    "option": { "approvalStepEditEnabled": false }
+  }
+}
+```
+
+The CLI auto-populates `approvalProcess.matchingData` by calling `resolve-policy`, generates a new `documentKey`, creates the draft, and submits. To look up `inputFieldIdHash` values and the template key, use `docs get <existing-documentKey>` on a prior document written from the same template.
 
 ## Common Flags
 
