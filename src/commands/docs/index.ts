@@ -4,6 +4,7 @@ import { docsGetCommand } from "./get.ts";
 import { docsTemplatesCommand } from "./templates.ts";
 import { docsSubmitCommand } from "./submit.ts";
 import { docsDeleteCommand } from "./delete.ts";
+import { docsDraftsCommand } from "./drafts.ts";
 
 export const docsCommand = defineCommand({
   meta: {
@@ -16,5 +17,6 @@ export const docsCommand = defineCommand({
     templates: docsTemplatesCommand,
     submit: docsSubmitCommand,
     delete: docsDeleteCommand,
+    drafts: docsDraftsCommand,
   },
 });

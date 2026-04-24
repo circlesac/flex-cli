@@ -73,6 +73,8 @@ flexhr docs get <documentKey>                   # Get a specific document
 flexhr docs templates                           # List document templates
 flexhr docs submit --payload <file.json>        # Submit an approval document from a payload JSON
 flexhr docs submit --payload <file.json> --dry-run   # Create draft only, don't submit
+flexhr docs drafts                              # List current user's draft (temp-saved) documents
+flexhr docs delete <documentKey>                # Delete a draft documentKey (cleanup)
 ```
 
 #### `docs submit` payload format

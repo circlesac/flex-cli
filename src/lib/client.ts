@@ -196,6 +196,48 @@ export async function submitDocument(
   return await resp.json();
 }
 
+export async function listDrafts(
+  creds: FlexCredentials,
+): Promise<Array<{
+  document: {
+    documentKey: string;
+    templateKey: string;
+    title: string;
+    createdAt?: string;
+    updatedAt?: string;
+  };
+  lastModifiedAt?: string;
+}>> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/draft`;
+
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: buildHeaders(creds),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+
+  const data = (await resp.json()) as {
+    drafts?: Array<{
+      document: {
+        documentKey: string;
+        templateKey: string;
+        title: string;
+        createdAt?: string;
+        updatedAt?: string;
+      };
+      lastModifiedAt?: string;
+    }>;
+  };
+  return data.drafts ?? [];
+}
+
 export async function deleteDraft(
   creds: FlexCredentials,
   documentKey: string,
