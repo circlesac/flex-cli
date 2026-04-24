@@ -149,6 +149,106 @@ export async function resolvePolicy(
   return (await resp.json()) as TemplatePolicyResponse;
 }
 
+export interface PresignedUrlResponse {
+  fileKey: string;
+  uploadUrl: string;
+  uploadMethod: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  sourceType: string;
+}
+
+export async function requestPresignedUrl(
+  creds: FlexCredentials,
+  params: {
+    name: string;
+    size: number;
+    mimeType: string;
+    sourceType?: string;
+    sensitiveFile?: boolean;
+  },
+): Promise<PresignedUrlResponse> {
+  const url = `${BASE_URL}/api/v2/file/users/me/files/temporary/pre-signed-url`;
+  const body = {
+    name: params.name,
+    size: params.size,
+    mimeType: params.mimeType,
+    sourceType: params.sourceType ?? "WORKFLOW_IN_EDITOR_FILE",
+    sensitiveFile: params.sensitiveFile ?? false,
+  };
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as PresignedUrlResponse;
+}
+
+export async function uploadToPresignedUrl(
+  uploadUrl: string,
+  data: ArrayBuffer,
+  mimeType: string,
+): Promise<void> {
+  const resp = await fetch(uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": mimeType },
+    body: data,
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `S3 PUT returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+}
+
+export async function verifyTemporaryFile(
+  creds: FlexCredentials,
+  fileKey: string,
+): Promise<void> {
+  const url = `${BASE_URL}/api/v2/file/users/me/files/temporary/${fileKey}/pre-signed-url/verify`;
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: buildHeaders(creds),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+}
+
+export async function convertTemporaryToContentFile(
+  creds: FlexCredentials,
+  temporaryFileKey: string,
+): Promise<{ url: string; fileKey: string }> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/content/files`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify({ temporaryFileKey }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as { url: string; fileKey: string };
+}
+
 export async function draftDocument(
   creds: FlexCredentials,
   documentKey: string,

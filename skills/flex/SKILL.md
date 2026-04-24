@@ -1,6 +1,6 @@
 ---
 name: flexhr
-description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, list/get/submit approval documents
+description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, upload files, list/get/submit approval documents
 ---
 
 # flexhr CLI
@@ -61,6 +61,17 @@ flexhr org --flat               # Flat department list instead of tree
 flexhr org --members            # Show individual member names under each department
 flexhr org --json               # JSON output
 ```
+
+### File Upload
+
+```bash
+flexhr upload <file>                    # pre-signed S3 upload → verify → content-file convert → prints final URL
+flexhr upload <file> --no-convert       # stop at temporary fileKey (raw use cases)
+flexhr upload <file> --mime image/png   # override auto-detected MIME
+flexhr upload <file> --source <type>    # override sourceType (default: WORKFLOW_IN_EDITOR_FILE)
+```
+
+The final `url` (e.g. `https://flex.team/api/v2/file/files/<key>`) can be embedded directly into an approval-document `content` HTML as `<img src="...">`.
 
 ### Approval Documents
 
