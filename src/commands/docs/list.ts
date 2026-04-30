@@ -10,8 +10,10 @@ function flattenDoc(d: DocumentSearchItem) {
   const doc = d.document;
   return {
     code: doc.code ?? "-",
+    documentKey: doc.documentKey,
     title: doc.title,
     status: doc.status,
+    writer: doc.writer?.name ?? "-",
     updated: doc.lastUpdatedAt?.slice(0, 10) ?? doc.writtenAt?.slice(0, 10) ?? "-",
   };
 }
@@ -55,8 +57,10 @@ export const docsListCommand = defineCommand({
       console.error(`\x1b[2m${resp.total} documents\x1b[0m`);
       printOutput(rows, format, [
         { key: "code", label: "Code" },
+        { key: "documentKey", label: "DocumentKey" },
         { key: "title", label: "Title" },
         { key: "status", label: "Status" },
+        { key: "writer", label: "Writer" },
         { key: "updated", label: "Updated" },
       ]);
     } catch (error) {
