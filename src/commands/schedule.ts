@@ -70,6 +70,11 @@ function resolveRange(args: {
           return d;
         })()
       : new Date(from.getTime() + 24 * 3600 * 1000);
+    if (to.getTime() <= from.getTime()) {
+      throw new Error(
+        `--to (${args.to}) must be on or after --from (${args.from ?? fmtDate(new Date())})`,
+      );
+    }
     return { from, to };
   }
 
@@ -108,9 +113,13 @@ function resolveRange(args: {
       return { from, to };
     }
     case "days": {
-      const n = Math.max(1, Number(args.days ?? "7"));
+      const raw = args.days ?? "7";
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n < 1) {
+        throw new Error(`--days must be a positive integer, got "${raw}"`);
+      }
       const to = new Date(today);
-      to.setDate(to.getDate() + n);
+      to.setDate(to.getDate() + Math.floor(n));
       return { from: today, to };
     }
     default:
