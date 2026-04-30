@@ -154,3 +154,63 @@ export interface DepartmentUserCount {
   count: number;
   totalCount: number;
 }
+
+// Calendar / schedule types
+
+export type FlexEventType =
+  | "TIME_OFF"
+  | "WORK_RECORD"
+  | "ONE_ON_ONE"
+  | "INTERVIEW"
+  | "BIRTHDAY"
+  | "COMPANY_JOIN_DAY";
+
+export interface FlexCalendar {
+  id: string;
+  token: string;
+  customerIdHash: string;
+  userIdHash: string;
+  summary: string;
+  timeZone: string;
+  userDisplayName?: string;
+  departmentName?: string;
+}
+
+export interface CoworkerCalendarsResponse {
+  hasNext: boolean;
+  calendars: FlexCalendar[];
+}
+
+export interface FlexEventTime {
+  date?: string;
+  dateTime?: string;
+  timeZone?: string;
+}
+
+export interface FlexCalendarEvent {
+  id: string;
+  flexEventType: FlexEventType;
+  flexEventJson?: {
+    title?: string;
+    syncKey?: string;
+    taskKey?: string;
+    [k: string]: unknown;
+  };
+  calendarId: string;
+  summary: string;
+  calendarEventUser?: {
+    type: string;
+    userIdHash: string;
+  };
+  status: string;
+  visibility: string;
+  isPrivate: boolean;
+  startAt: FlexEventTime;
+  endAtExclusive: FlexEventTime;
+  updatedAt: string;
+}
+
+export interface CalendarEventsResponse {
+  hasNext: boolean;
+  list: FlexCalendarEvent[];
+}

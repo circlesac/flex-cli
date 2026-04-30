@@ -1,6 +1,6 @@
 ---
 name: flexhr
-description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, upload files, list/get/submit approval documents
+description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, view team schedule (vacations/birthdays), upload files, list/get/submit approval documents
 ---
 
 # flexhr CLI
@@ -61,6 +61,25 @@ flexhr org --flat               # Flat department list instead of tree
 flexhr org --members            # Show individual member names under each department
 flexhr org --json               # JSON output
 ```
+
+### Schedule (Vacations / Calendar)
+
+```bash
+flexhr schedule                                 # today, you + your coworker calendars
+flexhr schedule --range week                    # this week (Mon–Sun)
+flexhr schedule --range next-week               # next week
+flexhr schedule --range month                   # this calendar month
+flexhr schedule --range days --days 30          # next 30 days
+flexhr schedule --from 2026-05-01 --to 2026-05-31  # explicit range
+flexhr schedule --user "Chester Lee"            # any user (resolves their personal calendar)
+flexhr schedule --me                            # only my events
+flexhr schedule --types TIME_OFF                # filter event types (comma-separated)
+flexhr schedule --json                          # full JSON: range, calendars, merged spans, raw events
+```
+
+Scope: `flexhr schedule` (no `--user`) reads your *primary calendar* + *coworker calendars* (the people you've added to your Flex calendar view). To see anyone else, use `--user <query>` — the CLI resolves the user via the global directory and pulls `/api/v2/calendar/calendars/users/<userIdHash>`.
+
+Event types: `TIME_OFF`, `WORK_RECORD`, `ONE_ON_ONE`, `INTERVIEW`, `BIRTHDAY`, `COMPANY_JOIN_DAY`. Multi-day spans returned as one event per day are merged into a single row by `(calendar, type, summary)` + contiguous dates.
 
 ### File Upload
 

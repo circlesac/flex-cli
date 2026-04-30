@@ -6,6 +6,10 @@ import type {
   TemplateOption,
   FlexDepartment,
   DepartmentUserCount,
+  FlexCalendar,
+  CoworkerCalendarsResponse,
+  CalendarEventsResponse,
+  FlexEventType,
 } from "../types/index.ts";
 import { ApiError } from "./errors.ts";
 
@@ -419,6 +423,94 @@ export async function getDepartmentUserCounts(
   }
 
   return (await resp.json()) as DepartmentUserCount[];
+}
+
+export async function getPrimaryCalendar(
+  creds: FlexCredentials,
+): Promise<FlexCalendar> {
+  const url = `${BASE_URL}/api/v2/calendar/calendars/primary`;
+  const resp = await fetch(url, { method: "GET", headers: buildHeaders(creds) });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as FlexCalendar;
+}
+
+export async function getCoworkerCalendars(
+  creds: FlexCredentials,
+  size = 5000,
+): Promise<CoworkerCalendarsResponse> {
+  const url = `${BASE_URL}/api/v2/calendar/calendars/coworkers?size=${size}`;
+  const resp = await fetch(url, { method: "GET", headers: buildHeaders(creds) });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as CoworkerCalendarsResponse;
+}
+
+export async function getUserCalendar(
+  creds: FlexCredentials,
+  userIdHash: string,
+): Promise<FlexCalendar> {
+  const url = `${BASE_URL}/api/v2/calendar/calendars/users/${userIdHash}`;
+  const resp = await fetch(url, { method: "GET", headers: buildHeaders(creds) });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as FlexCalendar;
+}
+
+export interface CalendarEventQuery {
+  calendarIds: string[];
+  dateTimeMin: string;
+  dateTimeMaxExclusive: string;
+  timeZone?: string;
+  flexEventTypes?: FlexEventType[];
+  statuses?: string[];
+  size?: number;
+}
+
+export async function getCalendarEvents(
+  creds: FlexCredentials,
+  q: CalendarEventQuery,
+): Promise<CalendarEventsResponse> {
+  const params = new URLSearchParams({
+    dateTimeMin: q.dateTimeMin,
+    dateTimeMaxExclusive: q.dateTimeMaxExclusive,
+    timeZone: q.timeZone ?? "Asia/Seoul",
+    size: String(q.size ?? 500),
+  });
+  for (const t of q.flexEventTypes ??
+    ["TIME_OFF", "WORK_RECORD", "ONE_ON_ONE", "INTERVIEW", "BIRTHDAY", "COMPANY_JOIN_DAY"])
+    params.append("flexEventTypes", t);
+  for (const s of q.statuses ?? ["CONFIRMED", "TENTATIVE"])
+    params.append("statuses", s);
+
+  const url = `${BASE_URL}/api/v2/calendar/calendars/events?${params}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify({ calendarIds: q.calendarIds }),
+  });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  // The API can return null body when no events exist
+  const text = await resp.text();
+  if (!text || text === "null") return { hasNext: false, list: [] };
+  return JSON.parse(text) as CalendarEventsResponse;
 }
 
 export async function getMe(

@@ -6,6 +6,7 @@ import { orgCommand } from "./commands/org.ts";
 import { docsCommand } from "./commands/docs/index.ts";
 import { meCommand } from "./commands/me.ts";
 import { uploadCommand } from "./commands/upload.ts";
+import { scheduleCommand } from "./commands/schedule.ts";
 
 const main = defineCommand({
   meta: {
@@ -21,6 +22,7 @@ const main = defineCommand({
     docs: docsCommand,
     me: meCommand,
     upload: uploadCommand,
+    schedule: scheduleCommand,
   },
 });
 
