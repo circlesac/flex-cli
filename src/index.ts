@@ -7,6 +7,7 @@ import { docsCommand } from "./commands/docs/index.ts";
 import { meCommand } from "./commands/me.ts";
 import { uploadCommand } from "./commands/upload.ts";
 import { scheduleCommand } from "./commands/schedule.ts";
+import { checkForUpdate } from "./lib/update-check.ts";
 
 const main = defineCommand({
   meta: {
@@ -26,4 +27,5 @@ const main = defineCommand({
   },
 });
 
+await checkForUpdate();
 runMain(main);
