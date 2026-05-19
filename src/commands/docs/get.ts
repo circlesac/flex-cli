@@ -27,10 +27,13 @@ function htmlToText(html: string): string {
     .trim();
 }
 
-/** Web UI URL for an approval document. Matches the link Flex emits in
- *  notifications and is what people actually paste in chat. */
+/** Web UI URL for an approval document. The `archive/my` path looks
+ *  user-scoped but the `workflow-task-key` query param drives the view,
+ *  so this link opens the doc for any account (writer, approver,
+ *  referrer). The bare `/workflow/document/<key>` path does NOT open
+ *  the doc for non-writer accounts. See circlesac/flex-cli#1. */
 function flexWebUrl(documentKey: string): string {
-  return `https://flex.team/workflow/document/${documentKey}`;
+  return `https://flex.team/workflow/archive/my?workflow-action=view&workflow-task-key=${documentKey}`;
 }
 
 export const docsGetCommand = defineCommand({
