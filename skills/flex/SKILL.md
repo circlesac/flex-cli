@@ -1,6 +1,6 @@
 ---
 name: flexhr
-description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, view team schedule (vacations/birthdays), upload files, list/get/submit approval documents
+description: CLI for Flex HR (flex.team) — manage authentication, look up users, browse org structure, view team schedule (vacations/birthdays), upload files, list/get/submit approval documents, read and clear notifications
 ---
 
 # flexhr CLI
@@ -131,6 +131,20 @@ flexhr docs delete <documentKey>                # Delete a draft documentKey (cl
 ```
 
 The CLI auto-populates `approvalProcess.matchingData` by calling `resolve-policy`, generates a new `documentKey`, creates the draft, and submits. To look up `inputFieldIdHash` values and the template key, use `docs get <existing-documentKey>` on a prior document written from the same template.
+
+### Notifications
+
+```bash
+flexhr notif count                              # Unread notification count (bell badge)
+flexhr notif list                               # Recent notification topics (default size: 20)
+flexhr notif list --size 50                     # Larger page
+flexhr notif list --unread                      # Only unread topics (client-side filter)
+flexhr notif read                               # Mark ALL topics as read (clears the bell)
+flexhr notif read --id <topicId>                # Mark a specific topic as read (repeatable)
+flexhr notif read --id <id1> --id <id2>         # Mark several topics as read
+```
+
+Endpoints (for reference): `GET /action/v2/notification/topics/count-unread`, `GET /api/v2/notification/topics`, `PUT /action/v2/notification/topics/read` (empty body → mark all; `{ topicIds: [...] }` → targeted).
 
 ## Common Flags
 
