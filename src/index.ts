@@ -7,6 +7,7 @@ import { docsCommand } from "./commands/docs/index.ts";
 import { meCommand } from "./commands/me.ts";
 import { uploadCommand } from "./commands/upload.ts";
 import { scheduleCommand } from "./commands/schedule.ts";
+import { notifCommand } from "./commands/notif/index.ts";
 import { checkForUpdate } from "./lib/update-check.ts";
 
 const main = defineCommand({
@@ -24,6 +25,7 @@ const main = defineCommand({
     me: meCommand,
     upload: uploadCommand,
     schedule: scheduleCommand,
+    notif: notifCommand,
   },
 });
 

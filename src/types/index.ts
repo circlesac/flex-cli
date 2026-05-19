@@ -214,3 +214,39 @@ export interface CalendarEventsResponse {
   hasNext: boolean;
   list: FlexCalendarEvent[];
 }
+
+// Notification types
+
+export interface NotificationItem {
+  token: string;
+  idHash: string;
+  text: string;
+  notificationType: string;
+  notificationCode: string;
+  thumbnailType?: string;
+  thumbnailValue?: string;
+  metaDataMap?: Record<string, unknown>;
+  ctaWebLink?: string;
+  ctaMobileLink?: string;
+  readAt?: number;
+  createdAt: number;
+}
+
+export interface NotificationTopic {
+  token: string;
+  id: string;
+  topicTitle: string;
+  topicRead: boolean;
+  subscribe: boolean;
+  notificationCount: number;
+  notification: NotificationItem;
+}
+
+export interface NotificationTopicsResponse {
+  hasNext: boolean;
+  topics: NotificationTopic[];
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
+}

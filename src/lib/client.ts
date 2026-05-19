@@ -10,6 +10,8 @@ import type {
   CoworkerCalendarsResponse,
   CalendarEventsResponse,
   FlexEventType,
+  NotificationTopicsResponse,
+  UnreadCountResponse,
 } from "../types/index.ts";
 import { ApiError } from "./errors.ts";
 
@@ -511,6 +513,55 @@ export async function getCalendarEvents(
   const text = await resp.text();
   if (!text || text === "null") return { hasNext: false, list: [] };
   return JSON.parse(text) as CalendarEventsResponse;
+}
+
+export async function getNotificationUnreadCount(
+  creds: FlexCredentials,
+): Promise<UnreadCountResponse> {
+  const url = `${BASE_URL}/action/v2/notification/topics/count-unread`;
+  const resp = await fetch(url, { method: "GET", headers: buildHeaders(creds) });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as UnreadCountResponse;
+}
+
+export async function listNotificationTopics(
+  creds: FlexCredentials,
+  size = 20,
+): Promise<NotificationTopicsResponse> {
+  const url = `${BASE_URL}/api/v2/notification/topics?size=${size}`;
+  const resp = await fetch(url, { method: "GET", headers: buildHeaders(creds) });
+  if (!resp.ok) {
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${resp.statusText}`,
+      resp.status,
+    );
+  }
+  return (await resp.json()) as NotificationTopicsResponse;
+}
+
+export async function markNotificationsRead(
+  creds: FlexCredentials,
+  topicIds?: string[],
+): Promise<void> {
+  const url = `${BASE_URL}/action/v2/notification/topics/read`;
+  const body = topicIds && topicIds.length > 0 ? { topicIds } : {};
+  const resp = await fetch(url, {
+    method: "PUT",
+    headers: buildHeaders(creds),
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
 }
 
 export async function getMe(
