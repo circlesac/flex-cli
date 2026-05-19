@@ -5,7 +5,7 @@ import { commonArgs } from "../../lib/args.ts";
 import { printOutput, getOutputFormat } from "../../lib/output.ts";
 import { handleError } from "../../lib/errors.ts";
 
-export const notifCountCommand = defineCommand({
+export const notificationsCountCommand = defineCommand({
   meta: {
     name: "count",
     description: "Show unread notification count",

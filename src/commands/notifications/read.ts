@@ -6,7 +6,7 @@ import {
 } from "../../lib/client.ts";
 import { handleError } from "../../lib/errors.ts";
 
-export const notifReadCommand = defineCommand({
+export const notificationsReadCommand = defineCommand({
   meta: {
     name: "read",
     description:

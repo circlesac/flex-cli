@@ -135,13 +135,13 @@ The CLI auto-populates `approvalProcess.matchingData` by calling `resolve-policy
 ### Notifications
 
 ```bash
-flexhr notif count                              # Unread notification count (bell badge)
-flexhr notif list                               # Recent notification topics (default size: 20)
-flexhr notif list --size 50                     # Larger page
-flexhr notif list --unread                      # Only unread topics (client-side filter)
-flexhr notif read                               # Mark ALL topics as read (clears the bell)
-flexhr notif read --id <topicId>                # Mark a specific topic as read (repeatable)
-flexhr notif read --id <id1> --id <id2>         # Mark several topics as read
+flexhr notifications count                              # Unread notification count (bell badge)
+flexhr notifications list                               # Recent notification topics (default size: 20)
+flexhr notifications list --size 50                     # Larger page
+flexhr notifications list --unread                      # Only unread topics (client-side filter)
+flexhr notifications read                               # Mark ALL topics as read (clears the bell)
+flexhr notifications read --id <topicId>                # Mark a specific topic as read (repeatable)
+flexhr notifications read --id <id1> --id <id2>         # Mark several topics as read
 ```
 
 Endpoints (for reference): `GET /action/v2/notification/topics/count-unread`, `GET /api/v2/notification/topics`, `PUT /action/v2/notification/topics/read` (empty body → mark all; `{ topicIds: [...] }` → targeted).

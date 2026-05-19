@@ -23,7 +23,7 @@ function flattenTopic(t: NotificationTopic) {
   };
 }
 
-export const notifListCommand = defineCommand({
+export const notificationsListCommand = defineCommand({
   meta: {
     name: "list",
     description: "List notification topics",
