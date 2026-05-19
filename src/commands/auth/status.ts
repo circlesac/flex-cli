@@ -17,7 +17,7 @@ export const statusCommand = defineCommand({
       const creds = await loadCredentials();
       if (!creds) {
         console.log(
-          `\x1b[33m⚠\x1b[0m Not authenticated. Run "flex auth login" first.`,
+          `\x1b[33m⚠\x1b[0m Not authenticated. Run "flexhr auth login" first.`,
         );
         return;
       }
