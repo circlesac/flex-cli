@@ -1,6 +1,6 @@
 # flex-cli
 
-CLI for Flex HR (flex.team). Extracts Comet browser cookies to authenticate with the Flex API.
+CLI for Flex HR (flex.team). Extracts cookies from the macOS default browser (auto-detected; falls back to any installed Chromium browser) to authenticate with the Flex API.
 
 ## Release
 
@@ -35,7 +35,7 @@ bun run src/index.ts # run flexhr CLI
 
 ## Architecture
 
-- **Auth**: Extracts cookies from Comet browser (Chromium-based), decrypts AES-128-CBC encrypted cookies using macOS Keychain password
+- **Auth**: Extracts cookies from the macOS default browser (auto-detected via LaunchServices; falls back to any installed Chromium browser — Chrome, Comet, Arc, Edge, Brave, Chromium), decrypts AES-128-CBC encrypted cookies using macOS Keychain password
 - **API**: Uses flex.team REST API with extracted cookies (JSESSIONID, AID JWT, DEVICE_ID)
 - **Storage**: Credentials stored at ~/.config/flex/credentials.json
 
