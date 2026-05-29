@@ -38,14 +38,14 @@ export async function requireCredentials(): Promise<FlexCredentials> {
   const creds = await loadCredentials();
   if (!creds) {
     throw new AuthError(
-      'Not authenticated. Run "flexhr auth login" to extract cookies from Comet.',
+      'Not authenticated. Run "flexhr auth login" to extract cookies from your default browser.',
     );
   }
 
   const now = Math.floor(Date.now() / 1000);
   if (creds.exp <= now) {
     throw new AuthError(
-      "AID token has expired. Open Comet, log in to flex.team, then run \"flexhr auth login\" again.",
+      "AID token has expired. Log in to flex.team in your browser, then run \"flexhr auth login\" again.",
     );
   }
 
