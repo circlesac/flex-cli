@@ -8,6 +8,7 @@ import { meCommand } from "./commands/me.ts";
 import { uploadCommand } from "./commands/upload.ts";
 import { scheduleCommand } from "./commands/schedule.ts";
 import { notificationsCommand } from "./commands/notifications/index.ts";
+import { checkinCommand } from "./commands/checkin/index.ts";
 import { checkForUpdate } from "./lib/update-check.ts";
 
 const main = defineCommand({
@@ -26,6 +27,7 @@ const main = defineCommand({
     upload: uploadCommand,
     schedule: scheduleCommand,
     notifications: notificationsCommand,
+    checkin: checkinCommand,
   },
 });
 
