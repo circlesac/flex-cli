@@ -134,6 +134,75 @@ export async function getDocument(
   return await resp.json();
 }
 
+/** Add a comment to an approval document. The Flex API wraps the payload
+ *  in a `comment` envelope; the server generates the id, writer, and
+ *  timestamps. `content` is plain text (newlines preserved). */
+export async function createComment(
+  creds: FlexCredentials,
+  documentKey: string,
+  content: string,
+): Promise<unknown> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/${documentKey}/comments`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: buildHeaders(creds),
+    body: JSON.stringify({ comment: { content } }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+  const text = await resp.text();
+  return text ? JSON.parse(text) : {};
+}
+
+/** Edit an existing comment. `commentId` is the comment's `idHash`. */
+export async function updateComment(
+  creds: FlexCredentials,
+  documentKey: string,
+  commentId: string,
+  content: string,
+): Promise<unknown> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/${documentKey}/comments/${commentId}`;
+  const resp = await fetch(url, {
+    method: "PUT",
+    headers: buildHeaders(creds),
+    body: JSON.stringify({ comment: { content } }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+  const text = await resp.text();
+  return text ? JSON.parse(text) : {};
+}
+
+/** Delete a comment. `commentId` is the comment's `idHash`. */
+export async function deleteComment(
+  creds: FlexCredentials,
+  documentKey: string,
+  commentId: string,
+): Promise<void> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/${documentKey}/comments/${commentId}`;
+  const resp = await fetch(url, {
+    method: "DELETE",
+    headers: buildHeaders(creds),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+}
+
 export async function resolvePolicy(
   creds: FlexCredentials,
   templateKey: string,
