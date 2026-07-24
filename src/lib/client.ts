@@ -134,6 +134,39 @@ export async function getDocument(
   return await resp.json();
 }
 
+/** Edit an existing (already-submitted) approval document in place. The
+ *  document resource allows `PUT` (verified via OPTIONS: PUT,DELETE,GET,
+ *  HEAD,OPTIONS) — this is the "수정" action. The `draft` endpoint rejects
+ *  submitted documents with WORKFLOW_400_022 "이미 작성한 문서입니다", so PUT
+ *  is the only edit path. Body must be `{ document: {...} }` ONLY — including
+ *  `approvalProcess` is rejected with APPROVAL_400_028 "변경될 수 없는 승인라인이에요"
+ *  because the approval line is locked after submit. Editing this way keeps
+ *  existing approvals intact (no step reset). */
+export async function editDocument(
+  creds: FlexCredentials,
+  documentKey: string,
+  body: unknown,
+): Promise<unknown> {
+  const url = `${BASE_URL}/api/v3/approval-document/approval-documents/${documentKey}`;
+
+  const resp = await fetch(url, {
+    method: "PUT",
+    headers: buildHeaders(creds),
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new ApiError(
+      `Flex API returned ${resp.status}: ${text.slice(0, 500)}`,
+      resp.status,
+    );
+  }
+
+  const text = await resp.text();
+  return text ? JSON.parse(text) : {};
+}
+
 /** Add a comment to an approval document. The Flex API wraps the payload
  *  in a `comment` envelope; the server generates the id, writer, and
  *  timestamps. `content` is plain text (newlines preserved). */

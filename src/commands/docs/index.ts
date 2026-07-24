@@ -3,6 +3,7 @@ import { docsListCommand } from "./list.ts";
 import { docsGetCommand } from "./get.ts";
 import { docsTemplatesCommand } from "./templates.ts";
 import { docsSubmitCommand } from "./submit.ts";
+import { docsEditCommand } from "./edit.ts";
 import { docsDeleteCommand } from "./delete.ts";
 import { docsDraftsCommand } from "./drafts.ts";
 import { docsCommentCommand } from "./comment/index.ts";
@@ -17,6 +18,7 @@ export const docsCommand = defineCommand({
     get: docsGetCommand,
     templates: docsTemplatesCommand,
     submit: docsSubmitCommand,
+    edit: docsEditCommand,
     delete: docsDeleteCommand,
     drafts: docsDraftsCommand,
     comment: docsCommentCommand,
